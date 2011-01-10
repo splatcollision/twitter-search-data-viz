@@ -160,11 +160,13 @@
 <!-- background - show actual tweets on click on a circle?-->
 <div class="full_container">
 	<div class="bglayer_left">
+		
 		<div id="lastmessages_1" class="bgtweets"></div>
 		<div id="lastmessages_3" class="bgtweets"></div>
 	</div>
 
 	<div class="bglayer_right">
+		<div id="single_tweet_display"></div>
 		<div id="lastmessages_2" class="bgtweets"></div>
 		<div id="lastmessages_4" class="bgtweets"></div>
 	</div>
@@ -216,6 +218,9 @@ someday I will let you enter your own search terms.  right now these are some br
 	var camTarget = {x: 830, y: 306, z: 523}; // smooth cam  // x = 830  y = 306  z = 523
 	var baseCamDist = 1000; // base cam dist - if a total is around 3k, add around 500 to this number
 	var ticker = null; // for the periodical executor
+	var displayTimeout = new PeriodicalExecuter(displaySingleTweet, 3); // another PE...
+	
+	
 	var cachedScaleF = localStorage['scaleFactor'];
 //	//console.log(cachedScaleF);
 	if (isNaN(cachedScaleF)) cachedScaleF = 2; // better
@@ -692,6 +697,7 @@ someday I will let you enter your own search terms.  right now these are some br
 //					console.log(data);
 					var displayEle = $('lastmessages_' + (searchIdx + 1));
 					displayEle.update('');
+					displayQueue = [];
 					data.results.each(function(result){
 					//	console.log(result.text);
 						var rawText = result.text.stripScripts().stripTags();
@@ -701,34 +707,33 @@ someday I will let you enter your own search terms.  right now these are some br
 						if (termIdx > -1) {
 							var highlightText = rawText.slice(0,termIdx) + '<span class="color' + (searchIdx + 1) + '">' + rawText.slice(termIdx,termIdx +
 							termLen) +  '</span>' + rawText.slice(termIdx + termLen);
-							displayEle.insert('<div class="atweet">' + highlightText + '</div>');
+							//displayEle.insert('<div class="atweet">' + highlightText + '</div>');
+							displayQueue.push('<div class="atweet">' + highlightText + '</div>');
 						}
 //						rawText = rawText.gsub()
 
 					}.bind(this));
-					//displayEle.highlight();
-					displayEle.setStyle({
-						color: '#bada55'
-					});
-					displayEle.morph('color:#000000;');
+					displayQueue.sortBy(Math.random);
+					
+//					displaySingleTweet();
 				}
-/*				created_at: "Mon, 10 Jan 2011 11:22:27 +0000"
-				from_user: "mikesabatora"
-				from_user_id: 195986897
-				from_user_id_str: "195986897"
-				geo: null
-				id: 24425835402366976
-				id_str: "24425835402366976"
-				iso_language_code: "en"
-				metadata: Object
-				profile_image_url: "http://a3.twimg.com/profile_images/1208317449/image_normal.jpg"
-				source: "&lt;a href=&quot;http://nikerunning.nike.com&quot; rel=&quot;nofollow&quot;&gt;Nike+ GPS&lt;/a&gt;"
-				text: "I just finished a 7.05 km run with a time of 57:35 with Nike+ GPS. #nikeplus"
-				to_user_id: null
-				to_user_id_str: null
-				__proto__: Object
-*/
 
+				function displaySingleTweet() {
+					
+					var displayEle = $('single_tweet_display');
+					console.log('go');
+					if (displayQueue.length > 0) {
+//						console.log(displayQueue);
+//						displayQueue[0];
+						displayEle.update(displayQueue.shift());
+						//displayEle.highlight();
+						displayEle.setStyle({
+							color: '#bada55'
+						});
+						displayEle.morph('color:#000000;');
+					}
+					
+				}
 				function loadScript(path) {
 					head = document.getElementsByTagName('head')[0];
 					script = document.createElement('script');
