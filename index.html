@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Tweet Tracking Point Cloud - an HTML5000 Production from Splat Collision Web Industries</title>
+	<style type="text/css">
+		body {
+			background-color: #ffffff;
+			margin: 0px;
+			overflow: hidden;
+		}
+		
+		div {
+			z-index: 200;
+		}
+		a {
+			color:#0078ff;
+		}
+		.info {
+			background: transparent;
+			position: absolute;
+			z-index: 100;
+
+			top: 0px;
+			left: 0px;
+		}
+		input {
+			margin: 10px;
+			padding: 2px;
+		}
+		#wtf {
+				background: transparent;
+				position: absolute;
+				z-index: 100;
+				top: 0px;
+				right: 90px;
+				width: 30%;
+				padding: 30px;
+				font-size: 12px;
+			}
+		#wtf_button {
+				position: absolute;
+				z-index: 101;
+				top: 48px;
+				right: 0px;
+			
+		}
+		.color1 {
+			color: #ff0000;
+		}
+		.color2 {
+			color: #0099ff;
+		}
+		.color3 {
+			color: #00ff00;
+		}
+		.color4 {
+			color: #0000ff;
+		}
+		.button {
+			border: 1px solid black;
+			padding: 10px;
+			margin: 10px;
+			cursor: pointer;
+		}
+		
+		.full_container {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			z-index: 99;
+		}
+		
+		.bglayer_left {
+			width: 50%;
+			position: absolute;
+			bottom: 0px;
+			right: 20px;
+			overflow: hidden;
+			z-index: 99;
+			background: transparent;
+			font-family: Helvetica, sans-serif;
+			opacity: 0.5;
+		}
+
+		.bglayer_right {
+			width: 50%;
+			position: absolute;
+			bottom: 0px;
+			left: 20px;
+			overflow: hidden;
+			z-index: 99;
+			background: transparent;
+			font-family: Helvetica, sans-serif;
+			opacity: 0.5;
+		}
+
+		
+		.bgtweets {
+			color: #000000;
+			font-size: 10px;
+			margin-bottom: 5px;
+			font-family: Helvetica, sans-serif;			
+		}
+	</style>
+	
+	
+	<!-- Date: 2011-01-06 -->
+</head>
+<body>
+<div class="info">
+<div class="color1"><span id="searchstr_1">NIKE</span>:<span id="container_1"></span>+<span id="container_1_latest"></span></div>
+<div class="color2"><span id="searchstr_2">NOOK</span>:<span id="container_2"></span>+<span id="container_2_latest"></span></div>
+<div class="color3"><span id="searchstr_3">VERIZON</span>:<span id="container_3"></span>+<span id="container_3_latest"></span></div>
+<div class="color4"><span id="searchstr_4">WALMART</span>:<span id="container_4"></span>+<span id="container_4_latest"></span></div>
+<div>Each Particle = <span id="factor">10</span> Tweets</div>
+<div id="show_search" class="button">Change Search Terms</div>
+<div id="searchterms" style="display: none">
+	<input id="term1"></input><br>
+	<input id="term2"></input><br>
+	<input id="term3"></input><br>
+	<input id="term4"></input><br>
+	<div id="update_search" class="button">Update Search</div>
+</div>
+<div id="data_toggle" class="button">Stop Capturing Data</div>
+<div id="clear_button" class="button">Clear Totals</div>
+
+</div>
+
+
+
+
+<div id="wtf_button" class="button">What?</div>
+<div id="wtf" style="display: none">
+	<p>this is a quick hack based on some of the fabulous three.js examples at http://github.com/mrdoob/three.js  Thanks to all involved.
+	<p>however the fun stuff w/ twitter and the particle drawing algorithm is all mine...
+	<p>move the mouse around to change your viewing angle.
+	<p>NEW! - enter your own search terms.  any values you have entered before will still remember their totals, courtesy of localStorage.
+	<p>uses localStorage and canvas, so if something breaks, that may be why.  keep it running to accumulate more data.  refresh and it will remember all the counts.
+	<p>kevin@splatcollision.com or <a href="http://twitter.com/splatcollision/">@splatcollision</a> to get in touch
+	<p><a href="http://splatcollision.com">main site</a> &nbsp; <a href="http://builtwithpride.splatcollision.com">blog</a>
+
+</div>
+
+<!-- background - show actual tweets on click on a circle?-->
+<div class="full_container">
+	<div class="bglayer_left">
+		<div id="lastmessages_1" class="bgtweets"></div>
+		<div id="lastmessages_2" class="bgtweets"></div>
+	</div>
+
+	<div class="bglayer_right">
+		<div id="lastmessages_3" class="bgtweets"></div>
+		<div id="lastmessages_4" class="bgtweets"></div>
+	</div>
+</div>	
+
+<!-- libs -->
+<script src="js/prototype.js" type="text/javascript" charset="utf-8"></script>
+<script src="scripts/libs/scriptaculous.js?load=effects" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="js/ThreeExtras.js"></script>
+<script src="js/Tween.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="js/Stats.js"></script>
+
+
+<script type="text/javascript">
+
+/*
+http://splatcollision.com/demos/tweetparticles/
+
+Welcome to the source code - this is a quick hack based on some of the fabulous three.js examples at http://github.com/mrdoob/three.js  Thanks to all involved.
+
+however the fun stuff w/ twitter and the particle drawing algorithm is all mine...
+
+someday I will let you enter your own search terms.  right now these are some brands that are interesting to me with some varied traffic.
+
+// uses localStorage, so if something breaks, that may be why.  keep it running to accumulate more data.  refresh and it will remember all the counts.
+
+	"HTML5000" is a registered tradmark of the internet.  
+	   By which I mean it's an umbrella term for all of the cool stuff we can do in browsers nowadays...
+
+   kevin@splatcollision.com or @splatcollision to get in touch  
+
+   date - 8 jan 2011
+
+*/
+
+	
+	var searchStrs = ['nike','nook','verizon','walmart'];
+//	var searchStrs = ['iphone','android','windows','mac'];	
+//	var currentQuery = searchStrs[searchIdx];
+	var searchIdx = -1; // which one are we on...
+	
+	// set up data visualization
+	
+	var origins = [{x: 300, y: 0, z: 300},{x: 300, y: 0, z: -300},{x: -300, y: 0, z: 300},{x: -300, y: 0, z: -300}];
+	var colors = [0xff0000, 0x0099ff, 0x00ff00, 0x0000ff];
+	var cloudSize = 400;
+	var camAngleX, camAngleY = -100;
+	var camTarget = {x: 0, y: 0, z: 0}; // smooth cam
+	var baseCamDist = 1000; // base cam dist - if a total is around 3k, add around 500 to this number
+	var ticker = null; // for the periodical executor
+	var cachedScaleF = localStorage['scaleFactor'];
+//	//console.log(cachedScaleF);
+	if (isNaN(cachedScaleF)) cachedScaleF = 2; // better
+	scaleFactor = (cachedScaleF != 2) ? parseInt(localStorage['scaleFactor']) : 2; // retreive if exists, else 2
+	
+//	scaleFactor = 2;  // dynamic based on number of particlees generated ? ie, when framerate sucks, increase this...
+	localStorage['scaleFactor'] = scaleFactor; // 
+	var minFPS = 11;  // ??
+	var minFPSCount = 0; // number of times dropped below framerate - 
+	$('factor').update(scaleFactor);
+	
+	var refresh = 5000; // 
+	var idleCamDriver = false;
+	var timeToIdle = 5;
+	var flipIdleY = false;
+	/// idle timeout for a standby animation sequence of camera moves
+	var idleTimeout = new PeriodicalExecuter(startIdleCam, timeToIdle);
+	
+	
+
+	
+	// 3d point cloud rendering here
+				var container, stats;
+				var camera, scene, renderer, particle;
+				var mouseX = 0, mouseY = 0;
+
+				var windowHalfX = window.innerWidth / 2;
+				var windowHalfY = window.innerHeight / 2;
+				var slope = windowHalfY / windowHalfX; // rise over run
+
+				init();
+				setInterval( loop, 1000 / 60 );
+
+				function init() {
+
+					container = document.createElement('div');
+					document.body.appendChild(container);
+					
+					camera = new THREE.Camera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
+					camera.position.z = 1000;
+
+					scene = new THREE.Scene();
+
+					renderer = new THREE.CanvasRenderer();
+
+					renderer.setSize( window.innerWidth, window.innerHeight );
+					
+					
+					drawGrid();
+					drawLabels();
+
+					container.appendChild( renderer.domElement );
+					
+					stats = new Stats();
+					stats.domElement.style.position = 'absolute';
+					stats.domElement.style.top = '0px';
+					stats.domElement.style.right = '0px';
+					container.appendChild( stats.domElement );
+
+					document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+					document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+					document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+				}
+
+
+				function drawGrid () {
+					// Grid
+
+					var geometry = new THREE.Geometry();
+					geometry.vertices.push( new THREE.Vertex( new THREE.Vector3( - 500, 0, 0 ) ) );
+					geometry.vertices.push( new THREE.Vertex( new THREE.Vector3( 500, 0, 0 ) ) );
+
+					for ( var i = 0; i <= 20; i ++ ) {
+
+						var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.2 } ) );
+						line.position.z = ( i * 50 ) - 500;
+						scene.addObject( line );
+
+						var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.2 } ) );
+						line.position.x = ( i * 50 ) - 500;
+						line.rotation.y = 90 * Math.PI / 180;
+						scene.addObject( line );
+
+					}
+					
+					// draw squares around origin area
+					for (var i = 0; i < origins.length; i++ ){
+						plane = new THREE.Mesh( new Plane( cloudSize, cloudSize ), new THREE.MeshBasicMaterial( { color: colors[i], opacity: 0.1 } ) );
+						plane.position.x = origins[i].x;
+						plane.position.y = origins[i].y;
+						plane.position.z = origins[i].z;
+						plane.rotation.z = plane.rotation.x = -90 * (Math.PI / 180);
+						plane.doubleSided = true;
+						plane.overdraw = true;
+						scene.addObject( plane );
+						
+						
+					}
+					
+					
+				}
+				
+				
+				function drawLabels () {
+					
+					// none of this is working right now...
+					
+					// searchStrs
+					// origins  /// 
+					for (var i = 0; i < searchStrs.length; i++) {
+						
+					//	var textImg = createTextImage( searchStrs[i] );
+						//console.log(textImg);
+//						var textMaterial =  );
+				    //	textMaterial.offset.y = 35;
+//						//console.log(textMaterial);
+				    //	
+//						var textMaterial = new THREE.MeshBasicMaterial( { map: createTextImage( searchStrs[ i ] ), color: 0x00FFFFFF } );
+//						var textMaterial = new THREE.MeshBasicMaterial( { map: ImageUtils.loadTexture( createTextImage( searchStrs[ i ] ) ) } );
+						var textMaterial = new THREE.ParticleBasicMaterial( {map: createTextImage( searchStrs[ i ].toUpperCase() ), blending: THREE.NormalBlending } );
+//						textMaterial.offset.y = 35;
+//						plane = new THREE.Mesh( new Plane( 300, 70 ),textMaterial); 
+						textObj = new THREE.Particle( textMaterial );
+						var vectorx = (origins[i].x > 0) ? 1 : -1;
+						var vectorz = (origins[i].z > 0) ? 1 : -1;
+						textObj.position.x = origins[i].x + ((vectorx * cloudSize) / 2);
+						textObj.position.y = origins[i].y;
+						textObj.position.z = origins[i].z + ((vectorz * cloudSize) / 2);
+						textObj.rotation.z = textObj.rotation.y = -90 * (Math.PI / 180);
+								//particle.scale.x = particle.scale.y = 0.5;
+						textObj.doubleSided = true;
+						textObj.overdraw = true;
+						scene.addObject( textObj );
+				
+				
+						
+						
+//				    	particle.scale.x = particle.scale.y = 0.5;
+//				    	scene.addObject( plane );
+					}
+				}
+				
+				// from http://xplsv.com/prods/demos/xplsv_orsotheysay/ courtesy of mr doob
+				function createTextImage( string ) {
+
+				    var canvas = document.createElement( 'canvas' );
+				    canvas.width = 600;
+				    canvas.height = 400;
+					//console.log('create image for: ' + string);
+				    var context = canvas.getContext( '2d' );
+				    context.font = "40px Helvetica";
+				    context.fillStyle = "rgb(80, 80, 80)";
+				    context.textAlign = "left";
+				    context.fillText( string, canvas.width / 2, canvas.height / 2 + (20) );
+
+				    return canvas;  //.getImageData(0,0,canvas.width, canvas.height).data;
+				}
+				
+				function clearScene () {
+					scene = null;
+					scene = new THREE.Scene();
+
+				}
+				//
+
+	/**
+	 *  drawPointCloud 
+	 * - origin point should be {x: num, y: num, z: num}
+	 * - pointCount - number of points	
+	 * - maxDist will control size of the point cloud
+	 *	- totalPoints is the number accumulated so far
+	 *
+	 **/
+				function drawPointCloud(originPoint, pointCount, maxDist, thecolor, totalPoints) {
+					//maxDist = maxDist / 2;  // a hack for overspill
+					var firstRunFlag = (totalPoints == pointCount) ? false : true;  // presents 1 or 0 to the maths below
+//					console.log(totalPoints * firstRunFlag);
+					//console.log('drawing point cloud: ' + pointCount + ' ' + maxDist);
+					//console.log(pointCount / scaleFactor);
+					if (pointCount < scaleFactor) {
+						// no points will be drawn, number is too low - what to do?
+						//console.log('error no points drawn in drawPointCloud');
+					}
+					
+					// should be 300 +- 200 max of 500 
+					// the more points you have, the more expansion, due to randomness - ok no big deal then
+					for (var i = 0; i < pointCount / scaleFactor; i ++) {
+						// draw numbers in the circles?
+						particle = new THREE.Particle( new THREE.ParticleCircleMaterial( { color: thecolor, opacity: 0.8 } ) );
+						particle.position.x = originPoint.x; // - (Math.random() * maxDist - (maxDist / 2));
+						particle.position.y = originPoint.y; //originPoint.y;
+						particle.position.z = originPoint.z; // - (Math.random() * maxDist - (maxDist / 2));
+//						console.log(particle.position.x + ' x ' + particle.position.z);
+						delay = i * 4;
+						//particle.position.normalize(); // vector
+//						particle.position.multiplyScalar(  4 );
+						var xRand = Math.random() - 0.5;  // centered around 0
+						var zRand = Math.random() - 0.5;
+						
+						// threw in a multiplier here to control the overspill of randomness ... 
+						var targetX = originPoint.x + (xRand * 0.5 * maxDist);
+						var targetY = originPoint.y + (0.3 * ((i * scaleFactor) + (totalPoints * firstRunFlag)));
+						var targetZ = originPoint.z - (zRand * 0.5 * maxDist);
+						particle.scale.x = particle.scale.y = scaleFactor / 1.3;
+						
+						new TWEEN.Tween( particle.material[0] )
+							.delay( delay )
+							.to( {opacity: 0.5}, refresh / 4 )
+							.start();
+						new TWEEN.Tween( particle.scale )
+							.delay( delay )
+							.to( { x: scaleFactor * 1.6, y: scaleFactor * 1.6 }, refresh / 4 )
+							.start();
+							
+						new TWEEN.Tween( particle.position )
+							.delay( delay )
+							.to( { x: targetX , y: targetY, z: targetZ }, refresh / 4 )
+							.easing(TWEEN.Easing.Back.EaseOut)
+							.start();
+							
+						scene.addObject( particle );
+					}
+				}
+
+				function onDocumentMouseMove( event ) {
+
+					mouseX = event.clientX - windowHalfX;
+					mouseY = event.clientY - windowHalfY;
+					
+
+					stopIdleCam();
+					
+				}
+
+				function onDocumentTouchStart( event ) {
+
+					if ( event.touches.length == 1 ) {
+
+						event.preventDefault();
+						stopIdleCam();
+						mouseX = event.touches[ 0 ].pageX - windowHalfX;
+						mouseY = event.touches[ 0 ].pageY - windowHalfY;
+					}
+				}
+
+				function onDocumentTouchMove( event ) {
+
+					if ( event.touches.length == 1 ) {
+
+						event.preventDefault();
+						stopIdleCam();
+						mouseX = event.touches[ 0 ].pageX - windowHalfX;
+						mouseY = event.touches[ 0 ].pageY - windowHalfY;
+					}
+				}
+
+				//
+				function startIdleCam() {
+					if (!idleCamDriver) {
+						mouseX = -windowHalfX;
+						mouseY = -windowHalfY;
+					}
+					idleTimeout.stop(); // so doesn't keep re-calling this func
+					idleCamDriver = true;
+//					camAngleX = (mouseX / windowHalfX) * 360;
+//					camAngleY = (mouseY / windowHalfY) * 90;
+				}
+				
+				function stopIdleCam() {
+					idleCamDriver = false;
+					if (idleTimeout) idleTimeout.stop();
+					idleTimeout = new PeriodicalExecuter(startIdleCam, timeToIdle);
+				}
+				
+				function loop() {
+
+//					camera.position.x += ( mouseX - camera.position.x ) * 1;
+//					camera.position.y += ( - mouseY - camera.position.y ) * 1;
+					if (idleCamDriver) {
+						// iterate mouseX and mouseY
+						mouseX = mouseX + (slope);
+						
+						mouseY = (mouseY + 1 ) + (-2 * flipIdleY);
+						mouseX = (mouseX > (windowHalfX)) ? -windowHalfX : mouseX;
+
+						if (mouseY > windowHalfY) {
+							flipIdleY = !flipIdleY;
+							mouseY = windowHalfY;
+						} else {
+							// nested in to avoid wack loop
+							if (mouseY < -windowHalfY) {
+								flipIdleY = !flipIdleY;
+								mouseY = -windowHalfY; 
+							}
+						}
+						
+					}
+//					//console.log('cam:' + camAngle);
+//					camera.position.y = 500;
+					
+					// vary the z and x according to a circle 
+					camAngleX = (mouseX / windowHalfX) * 360;
+					camAngleY = (mouseY / windowHalfY) * 90;
+					
+					// smooth cam
+					camTarget.x = baseCamDist * Math.cos(camAngleX * Math.PI / 180);
+					camTarget.y = - baseCamDist * Math.sin(camAngleY * Math.PI / 180);
+					camTarget.z = - baseCamDist * Math.sin(camAngleX * Math.PI / 180);
+
+					camera.position.x += (camera.position.x - camTarget.x) / 10; 
+					camera.position.y += (camera.position.x - camTarget.x) / 10; 
+					camera.position.z += (camera.position.z - camTarget.z) / 10; 
+					// angle0 += sangle;  / step angle, derive this from mouseX
+//				    x = cx + radius * Math.cos(angle0 * Math.PI / 180);
+//				    y = cy - radius * Math.sin(angle0 * Math.PI / 180);
+					
+					
+					
+					renderer.render( scene, camera );
+					TWEEN.update();
+					stats.update();
+					if (stats.getFPS() < minFPS) {
+						// minFPS
+						minFPSCount++;
+						if (minFPSCount > 200) {  // if it keeps happening for 2 seconds
+							throttleParticleScale();
+							minFPSCount = 0;
+						}
+					}
+//					//console.log(stats.getFPS()); // yeah!
+				}
+	
+			// twitter refreshing
+				
+				function throttleParticleScale () {
+					//console.log('throttling performance');
+					scaleFactor = scaleFactor * 2; // x2 it
+					if (scaleFactor > 32) {
+						scaleFactor = 32;
+						return; // that's big enough, thanks - don't want to go crazy
+					}
+					$('factor').update(scaleFactor);
+					localStorage['scaleFactor'] = scaleFactor; // save it
+					// clear all in scene
+					
+					redrawScene();
+				}
+				
+				function redrawScene () {
+					clearScene();
+					drawGrid();
+					drawLabels();
+					// initFromStoredVals
+//					ticker.stop(); // stop any calls
+					initFromStoredVals();
+				}
+				
+				function resetScale() {
+					localStorage['scaleFactor'] = 2; // just for console resetting
+					scaleFactor = 2;
+					$('factor').update(scaleFactor);
+					
+				}
+				
+				function scaleFromCount(count) {
+					// base around cloudSize
+					// larger counts get larger scales, ranged around cloudSize = 1000 count
+					var diff = count - 1000;
+					
+//					if (count > cloudSize) return count - cloudSize; // a max limit, please
+					return cloudSize + (diff / 10);
+				}
+				
+				function initFromStoredVals () {
+					for (var i = 0; i < searchStrs.length; i++) {
+
+						localRefreshID = searchStrs[i] + '_refresh';
+						localStorage[searchStrs[i] + '_cache'] = 0;  // cache for tweets below threshold of scaleFactor
+						localStorage[localRefreshID] = '?q=' + searchStrs[i]; // init first query strings  // if (!localStorage[localRefreshID]) 
+						var countID = searchStrs[i];
+						//console.log(countID);
+						var count = parseInt(localStorage[countID]);
+						//console.log(count);
+						$('container_' + (i + 1)).update(count);
+						// update labels from search strings  <span id="searchstr_1">NIKE</span>
+						$('searchstr_' + (i + 1)).update(searchStrs[i].toUpperCase());
+						drawPointCloud(origins[i], count, scaleFromCount(count), colors[i], count);
+					};
+				}
+				// init done
+
+				function clearCounts() {
+					for (var i = 0; i < searchStrs.length; i++) {
+						var searchCountID = searchStrs[i];
+						localStorage[searchCountID] = 0;
+
+					}
+					localStorage['scaleFactor'] = 2; // reset it
+					scaleFactor = 2;
+					$('factor').update(scaleFactor);
+					// redraw
+					clearScene();
+					drawGrid();
+					drawLabels();
+					initFromStoredVals();
+					// restart data capturing manually
+					if (ticker) ticker.stop();
+					getNewTweets();
+					capturingData = true;
+					$('data_toggle').update('Stop Capturing Data');
+				}
+				
+				
+				
+				function handleTweets(data) {
+					//console.log(data);
+					var newTweets = data.results.length;
+					//console.log('refresh:' + data.refresh_url);
+					//console.log('new tweets:' + newTweets);
+					if (newTweets > 0) {
+						displayTweets(data);
+					}
+					var searchCountID = searchStrs[searchIdx];
+					
+					var tweetCount = parseInt((localStorage[searchCountID]) ? localStorage[searchCountID] : 0); // for first run
+					tweetCount += data.results.length;
+					localStorage[searchCountID] = tweetCount;
+					localStorage[searchCountID + '_refresh'] = data.refresh_url; // use this next time?
+					$('container_' + (searchIdx + 1)).update(tweetCount);  					// totals
+
+					// check if we are over threshold yet
+					localStorage[searchCountID + '_cache'] = newTweets + parseInt(localStorage[searchCountID + '_cache']);
+					//console.log(localStorage[searchCountID + '_cache'] + ' ' + scaleFactor);
+					if (localStorage[searchCountID + '_cache'] > scaleFactor) {
+						drawPointCloud(origins[searchIdx], newTweets, scaleFromCount(newTweets), colors[searchIdx], tweetCount);
+						localStorage[searchCountID + '_cache'] = 0; // reset cache
+					} else {
+						newTweets = parseInt(localStorage[searchCountID + '_cache']);
+					}
+					
+					$('container_' + (searchIdx + 1) + '_latest').update(newTweets);  					// latest new tweets
+					
+					// clear previous script in head
+					//head.removeChild(script);
+
+					if (script) head.removeChild(script);
+					// queue up another go
+					
+					//setInterval( getNewTweets, refresh );
+					ticker = new PeriodicalExecuter(getNewTweets, refresh / 1000);
+					
+				};
+				// refresh_url: "?since_id=23044463651721216&q=nike"
+
+				function displayTweets(data) {
+					//lastmessages_1
+//					console.log(data);
+					var displayEle = $('lastmessages_' + (searchIdx + 1));
+					displayEle.update('');
+					data.results.each(function(result){
+					//	console.log(result.text);
+						var rawText = result.text.stripScripts().stripTags();
+//						var lcText = rawText.toLowerCase;
+						var termIdx = rawText.toLowerCase().indexOf(searchStrs[searchIdx]);
+						var termLen = searchStrs[searchIdx].length;
+						if (termIdx > -1) {
+							var highlightText = rawText.slice(0,termIdx) + '<span class="color' + (searchIdx + 1) + '">' + rawText.slice(termIdx,termIdx +
+							termLen) +  '</span>' + rawText.slice(termIdx + termLen);
+							displayEle.insert('<div class="atweet">' + highlightText + '</div>');
+						}
+//						rawText = rawText.gsub()
+
+					}.bind(this));
+					//displayEle.highlight();
+					displayEle.setStyle({
+						color: '#bada55'
+					});
+					displayEle.morph('color:#000000;');
+				}
+/*				created_at: "Mon, 10 Jan 2011 11:22:27 +0000"
+				from_user: "mikesabatora"
+				from_user_id: 195986897
+				from_user_id_str: "195986897"
+				geo: null
+				id: 24425835402366976
+				id_str: "24425835402366976"
+				iso_language_code: "en"
+				metadata: Object
+				profile_image_url: "http://a3.twimg.com/profile_images/1208317449/image_normal.jpg"
+				source: "&lt;a href=&quot;http://nikerunning.nike.com&quot; rel=&quot;nofollow&quot;&gt;Nike+ GPS&lt;/a&gt;"
+				text: "I just finished a 7.05 km run with a time of 57:35 with Nike+ GPS. #nikeplus"
+				to_user_id: null
+				to_user_id_str: null
+				__proto__: Object
+*/
+
+				function loadScript(path) {
+					head = document.getElementsByTagName('head')[0];
+					script = document.createElement('script');
+					script.type = 'text/javascript';
+					script.src = path;
+					head.appendChild(script);
+
+				}
+
+
+				function getNewTweets() {
+					// use refresh_url
+					// index the searchIdx;
+					searchIdx++;
+					searchIdx = (searchIdx > searchStrs.length - 1) ? 0 : searchIdx; // wrap back - every 10 seconds queries next thing
+					//console.log('new search index: ' + searchIdx);
+					//console.log(searchStrs[searchIdx]);
+					var myRefreshUrl = localStorage[searchStrs[searchIdx] + '_refresh'];
+					//console.log('updating:' + myRefreshUrl);
+					loadScript('http://search.twitter.com/search.json' + myRefreshUrl + '&callback=handleTweets');
+					//clearInterval(getNewTweets); // wait until we get our response script callback before firing again.
+					if (ticker) ticker.stop();
+				};
+				
+				
+				function toggleDataCapture (evt) {
+					// if there's
+					if (capturingData) {
+						if (ticker) ticker.stop();
+						capturingData = false;
+						Event.element(evt).update('Start Capturing Data');
+					} else {
+						getNewTweets();
+						capturingData = true;
+						Event.element(evt).update('Stop Capturing Data');
+					}
+					
+
+				}
+				capturingData = true;
+				$('data_toggle').observe('click', toggleDataCapture.bind(this));
+				$('clear_button').observe('click', clearCounts.bind(this));
+				$('wtf_button').observe('click', function(evt){ $('wtf').toggle()});
+				$('show_search').observe('click', showSearchFields.bind(this));
+				$('update_search').observe('click', updateSearchTerms.bind(this));
+			// user entry?
+			
+			function showSearchFields () {
+				$('searchterms').toggle();
+				// populate fields
+				for (i = 0; i < searchStrs.length; i++) {
+					$('term' + (i+1)).setValue(searchStrs[i]);
+				}
+				
+			}
+			
+			function updateSearchTerms () {
+				var oldTerms = searchStrs;
+				var refresh = false;
+				for (i = 0; i < searchStrs.length; i++) {
+					//$('term' + (i+1)).setValue(searchStrs[i]);
+					if ($F('term' + (i+1)) != searchStrs[i]) {
+						searchStrs[i] = $F('term' + (i + 1)).stripScripts().toLowerCase();
+						refresh = true; // something is changed
+					}
+				}
+				if (refresh) {
+					resetScale(); // don't know how many the new values will have...
+					redrawScene();
+				}
+				$('searchterms').hide();
+			}
+/*
+
+<div id="searchterms" style="display: none">
+	<input id="term1"></input><br>
+	<input id="term2"></input><br>
+	<input id="term3"></input><br>
+	<input id="term4"></input><br>
+	<div id="termsupdate_button" class="button">Update</div>
+</div>
+*/	
+	
+	
+	initFromStoredVals();
+	getNewTweets();  // this will turn on refreshing
+	
+	
+	
+</script>
+
+
+
+	
+	
+</body>
+</html>
+

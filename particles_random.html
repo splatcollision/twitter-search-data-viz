@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>three.js - particles - random</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+		<style type="text/css">
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			a {
+				color:#0078ff;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script type="text/javascript" src="js/Three.js"></script>
+
+		<script type="text/javascript" src="js/Stats.js"></script>
+
+		<script type="text/javascript">
+// 3d point cloud rendering here
+			var container, stats;
+			var camera, scene, renderer, particle;
+			var mouseX = 0, mouseY = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			init();
+			setInterval( loop, 1000 / 60 );
+
+			function init() {
+
+				container = document.createElement('div');
+				document.body.appendChild(container);
+
+				camera = new THREE.Camera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
+				camera.position.z = 1000;
+
+				scene = new THREE.Scene();
+
+				renderer = new THREE.CanvasRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+/*
+				for ( var i = 0; i < 1000; i++ ) {  // for each tweet for each category
+
+					particle = new THREE.Particle( new THREE.ParticleCircleMaterial( { color: Math.random() * 0x808008 + 0x808080, opacity: 1 } ) );
+					particle.position.x = Math.random() * 2000 - 1000;
+					particle.position.y = 0;  // Math.random() * 2000 - 1000;
+					particle.position.z = Math.random() * 2000 - 1000;
+					particle.scale.x = particle.scale.y = Math.random() * 10 + 5;
+					scene.addObject( particle );
+				}
+*/
+
+				point1Data = [1,2,3,4,5,6,7,8,9,10];
+				drawPointCloud({x: 100, y: 100, z: 100}, point1Data, 500, 0xff0000);
+				drawPointCloud({x: 100, y: -100, z: 100}, point1Data, 400, 0x00ff00);
+				drawPointCloud({x: 100, y: 100, z: -100}, point1Data, 300, 0x0000ff);
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+			}
+
+			//
+			
+/**
+ *  drawPointCloud 
+ * - origin point should be {x: num, y: num, z: num}
+ * - pointCount - number of points	
+ * - maxDist will control size of the point cloud
+ *
+ *
+ **/
+			function drawPointCloud(originPoint, pointCount, maxDist, thecolor) {
+				var distSeed = maxDist - (maxDist / 2);
+				
+				
+				for (var i = 0; i < pointCount; i ++) {
+					particle = new THREE.Particle( new THREE.ParticleCircleMaterial( { color: thecolor, opacity: 1 } ) );
+					particle.position.x = originPoint.x + (Math.random() * distSeed);
+					particle.position.y = originPoint.y + (Math.random() * distSeed);
+					particle.position.z = originPoint.z + (Math.random() * distSeed);
+					particle.scale.x = particle.scale.y = Math.random() * 10 + 5;
+					scene.addObject( particle );
+				}
+			}
+
+			function onDocumentMouseMove( event ) {
+
+				mouseX = event.clientX - windowHalfX;
+				mouseY = event.clientY - windowHalfY;
+			}
+
+			function onDocumentTouchStart( event ) {
+
+				if ( event.touches.length == 1 ) {
+
+					event.preventDefault();
+
+					mouseX = event.touches[ 0 ].pageX - windowHalfX;
+					mouseY = event.touches[ 0 ].pageY - windowHalfY;
+				}
+			}
+
+			function onDocumentTouchMove( event ) {
+
+				if ( event.touches.length == 1 ) {
+
+					event.preventDefault();
+
+					mouseX = event.touches[ 0 ].pageX - windowHalfX;
+					mouseY = event.touches[ 0 ].pageY - windowHalfY;
+				}
+			}
+
+			//
+
+			function loop() {
+
+				camera.position.x += ( mouseX - camera.position.x ) * 0.05;
+				camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+
+				renderer.render( scene, camera );
+
+				stats.update();
+			}
+
+		</script>
+	</body>
+</html>
