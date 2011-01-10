@@ -211,6 +211,7 @@ someday I will let you enter your own search terms.  right now these are some br
 	// set up data visualization
 	
 	var origins = [{x: 300, y: 0, z: 300},{x: 300, y: 0, z: -300},{x: -300, y: 0, z: -300},{x: -300, y: 0, z: 300}];
+	var originPlanes = []; // array of plane objects matching each origin point above.
 	var mouseXPositions = [-90,90,260,430];
 	var colors = [0xff0000, 0x0099ff, 0x00ff00, 0x0000ff];
 	var cloudSize = 400;
@@ -316,10 +317,21 @@ someday I will let you enter your own search terms.  right now these are some br
 						plane.doubleSided = true;
 						plane.overdraw = true;
 						scene.addObject( plane );
-						
+						originPlanes[i] = plane;
 						
 					}
 					
+					
+				}
+				
+				function highlightOriginPlane () {
+					var thePlane = originPlanes[searchIdx];
+					console.log(thePlane.material[0]);
+					thePlane.material[0].opacity = 0.8;
+					new TWEEN.Tween( thePlane.material[0] )
+
+						.to( {opacity: 0.1}, 2000 )
+						.start();
 					
 				}
 				
@@ -670,6 +682,7 @@ someday I will let you enter your own search terms.  right now these are some br
 					//console.log(localStorage[searchCountID + '_cache'] + ' ' + scaleFactor);
 					if (localStorage[searchCountID + '_cache'] > scaleFactor) {
 						drawPointCloud(origins[searchIdx], newTweets, scaleFromCount(newTweets), colors[searchIdx], tweetCount);
+						highlightOriginPlane();
 						// move the camera to see the new points
 						mouseX = mouseXPositions[searchIdx];
 						mouseY = -300;
