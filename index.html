@@ -19,6 +19,22 @@
 		a {
 			color:#0078ff;
 		}
+		
+		.browser_message {
+			margin: 0 auto;
+			background-color: black;
+			color: white;
+			padding: 20px;
+			width: 640px;
+			height: 480px;
+			position: absolute;
+			top: 150px;
+			left: 50px;
+			z-index: 300;
+		}
+		
+		
+		
 		.info {
 			margin: 10px;
 			background: transparent;
@@ -83,7 +99,7 @@
 		#wtf {
 
 				position: absolute;
-				z-index: 100;
+				z-index: 400;
 				top: 0px;
 				right: 90px;
 				width: 30%;
@@ -188,6 +204,7 @@
 	<!-- Date: 2011-01-06 -->
 </head>
 <body>
+
 <div class="info">
 	<div class="total color1">
 		<span class="searchstr" id="searchstr_1">NIKE</span>
@@ -214,10 +231,10 @@
 <div class="controls">
 	<div id="show_search" class="button">Change Search Terms</div>
 	<div id="searchterms" style="display: none">
-		<div class="color1_bg"><input id="term1"></input></div>
-		<div class="color2_bg"><input id="term2"></input></div>
-		<div class="color3_bg"><input id="term3"></input></div>
-		<div class="color4_bg"><input id="term4"></input></div>
+		<div class="color1_bg"><input id="term1"></div>
+		<div class="color2_bg"><input id="term2"></div>
+		<div class="color3_bg"><input id="term3"></div>
+		<div class="color4_bg"><input id="term4"></div>
 		<div id="update_search" class="button">Update Search</div>
 	</div>
 	<div id="data_toggle" class="button">Stop Capturing Data</div>
@@ -250,8 +267,22 @@
 	</div>
 </div>	
 
+<div class="browser_message" id="browser_msg" style="display: none;">
+	<h1>Insufficient Technology Detected</h1>
+	<hr>
+	<p>Sorry, please try a browser that supports key HTML5 technologies like <code>&lt;canvas&gt;</code> and <code>localStorage</code>
+	<p>Tested in WebKit (Chrome and Safari) and Firefox.</p>
+	<p>Thanks, Kevin</p>
+</div>
 <!-- libs -->
 <script src="js/prototype.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+	if ((!document.createElement('canvas').getContext) || (!localStorage)) {
+
+		$('browser_msg').show();
+		$('wtf').show();
+	}
+</script>
 <script src="scripts/libs/scriptaculous.js?load=effects" type="text/javascript" charset="utf-8"></script>
 <script type="text/javascript" src="js/ThreeExtras.js"></script>
 <script src="js/Tween.js" type="text/javascript" charset="utf-8"></script>
@@ -280,6 +311,9 @@ someday I will let you enter your own search terms.  right now these are some br
 
 */
 
+
+//	}
+	
 	
 	var searchStrs = ['nike','nook','verizon','walmart'];
 //	var searchStrs = ['iphone','android','windows','mac'];	
@@ -761,6 +795,7 @@ someday I will let you enter your own search terms.  right now these are some br
 				
 				function handleTweets(data) {
 					//console.log(data);
+					if (!data.results) return; // bail out on error
 					var newTweets = data.results.length;
 					//console.log('refresh:' + data.refresh_url);
 					//console.log('new tweets:' + newTweets);
