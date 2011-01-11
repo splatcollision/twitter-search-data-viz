@@ -9,28 +9,79 @@
 			background-color: #ffffff;
 			margin: 0px;
 			overflow: hidden;
+			font-family: Helvetica, sans-serif;
 		}
 		
 		div {
-			z-index: 200;
+			background: transparent;
 		}
+		
 		a {
 			color:#0078ff;
 		}
 		.info {
+			margin: 10px;
 			background: transparent;
 			position: absolute;
 			z-index: 100;
 
 			top: 0px;
 			left: 0px;
+			
+		}
+		
+		.total {
+			display: inline;
+			font-size: 30px;
+			
+		}
+		.searchstr {
+			opacity: 0.5;
+			font-weight: bold;
+			font-size: 30px;
+			margin-left: 20px;
+		}
+		
+		.count {
+			font-size: 20px;
+			
+			
+			
+		}
+		
+		.newcount {
+			margin-left: 4px;
+		}
+		
+		.controls {
+			position: absolute;
+			top: 60px;
+			left: 0px;
+			background: transparent;
+			font-family: Helvetica, sans-serif;
+			z-index: 100;
+			width: 230px;
+
+		}
+		
+		.legend {
+			position: absolute;
+			bottom: 20px;
+			right: 4px;
+			background: transparent;
+			
+			color: #aaa;
+			z-index: 99;
+		}
+		#factor { 
+			font-size: 1.2em;
 		}
 		input {
 			margin: 10px;
 			padding: 2px;
 		}
 		#wtf {
-				background: transparent;
+
 				position: absolute;
 				z-index: 100;
 				top: 0px;
@@ -38,6 +89,15 @@
 				width: 30%;
 				padding: 30px;
 				font-size: 12px;
+			}
+			
+		.wtfstyle {
+			color: black;
+			border: 1px solid #999;
+			background-color: transparent;
+			width: 482px;
+			height: 382px;
+			background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, from(rgba(255, 255, 255, 0)), color-stop(0.13, white), color-stop(0.81, rgba(255, 255, 255, 0.761719)), to(rgba(173, 211, 252, 0)));
 			}
 		#wtf_button {
 				position: absolute;
@@ -129,29 +189,42 @@
 </head>
 <body>
 <div class="info">
-<div class="color1"><span id="searchstr_1">NIKE</span>:<span id="container_1"></span>+<span id="container_1_latest"></span></div>
-<div class="color2"><span id="searchstr_2">NOOK</span>:<span id="container_2"></span>+<span id="container_2_latest"></span></div>
-<div class="color3"><span id="searchstr_3">VERIZON</span>:<span id="container_3"></span>+<span id="container_3_latest"></span></div>
-<div class="color4"><span id="searchstr_4">WALMART</span>:<span id="container_4"></span>+<span id="container_4_latest"></span></div>
-<div>x<span id="factor">10</span></div>
-<div id="show_search" class="button">Change Search Terms</div>
-<div id="searchterms" style="display: none">
-	<div class="color1_bg"><input id="term1"></input></div>
-	<div class="color2_bg"><input id="term2"></input></div>
-	<div class="color3_bg"><input id="term3"></input></div>
-	<div class="color4_bg"><input id="term4"></input></div>
-	<div id="update_search" class="button">Update Search</div>
+	<div class="total color1">
+		<span class="searchstr" id="searchstr_1">NIKE</span>
+		<span class="count" id="container_1"></span>
+		+<span class="newcount" id="container_1_latest">0</span>
+	</div>
+	<div class="total color2">
+		<span class="searchstr" id="searchstr_2">NOOK</span>
+		<span class="count" id="container_2"></span>
+		+<span class="newcount" id="container_2_latest">0</span>
+	</div>
+	<div class="total color3">
+		<span class="searchstr" id="searchstr_3">VERIZON</span>
+		<span class="count" id="container_3"></span>
+		+<span class="newcount" id="container_3_latest">0</span>
+	</div>
+	<div class="total color4">
+		<span class="searchstr" id="searchstr_4">WALMART</span>
+		<span class="count" id="container_4"></span>
+		+<span class="newcount" id="container_4_latest">0</span>
+	</div>
+</div> <!-- end info display -->
+<div class="legend">each circle = <span id="factor">0</span> tweets</div>
+<div class="controls">
+	<div id="show_search" class="button">Change Search Terms</div>
+	<div id="searchterms" style="display: none">
+		<div class="color1_bg"><input id="term1"></input></div>
+		<div class="color2_bg"><input id="term2"></input></div>
+		<div class="color3_bg"><input id="term3"></input></div>
+		<div class="color4_bg"><input id="term4"></input></div>
+		<div id="update_search" class="button">Update Search</div>
+	</div>
+	<div id="data_toggle" class="button">Stop Capturing Data</div>
+	<div id="clear_button" class="button">Clear Totals</div>
 </div>
-<div id="data_toggle" class="button">Stop Capturing Data</div>
-<div id="clear_button" class="button">Clear Totals</div>
-
-</div>
-
-
-
-
 <div id="wtf_button" class="button">What?</div>
-<div id="wtf" style="display: none">
+<div class="wtfstyle" id="wtf" style="display: none">
 	<p>this is a quick hack based on some of the fabulous three.js examples at http://github.com/mrdoob/three.js  Thanks to all involved.
 	<p>however the fun stuff w/ twitter and the particle drawing algorithm is all mine...
 	<p>move the mouse around to change your viewing angle.
@@ -332,7 +405,7 @@ someday I will let you enter your own search terms.  right now these are some br
 				function highlightOriginPlane () {
 					var thePlane = originPlanes[searchIdx];
 //					console.log(thePlane.material[0]);
-					thePlane.material[0].opacity = 0.8;
+					thePlane.material[0].opacity = 0.4;
 					new TWEEN.Tween( thePlane.material[0] )
 
 						.to( {opacity: 0.1}, 2000 )
