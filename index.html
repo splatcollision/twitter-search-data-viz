@@ -117,6 +117,11 @@
 			margin-bottom: 5px;
 			font-family: Helvetica, sans-serif;			
 		}
+		
+		.atweet {
+			border-top: 1px solid #aaa;
+			padding: 5px 0px;
+		}
 	</style>
 	
 	
@@ -128,7 +133,7 @@
 <div class="color2"><span id="searchstr_2">NOOK</span>:<span id="container_2"></span>+<span id="container_2_latest"></span></div>
 <div class="color3"><span id="searchstr_3">VERIZON</span>:<span id="container_3"></span>+<span id="container_3_latest"></span></div>
 <div class="color4"><span id="searchstr_4">WALMART</span>:<span id="container_4"></span>+<span id="container_4_latest"></span></div>
-<div>Each Particle = <span id="factor">10</span> Tweets</div>
+<div>x<span id="factor">10</span></div>
 <div id="show_search" class="button">Change Search Terms</div>
 <div id="searchterms" style="display: none">
 	<div class="color1_bg"><input id="term1"></input></div>
@@ -326,7 +331,7 @@ someday I will let you enter your own search terms.  right now these are some br
 				
 				function highlightOriginPlane () {
 					var thePlane = originPlanes[searchIdx];
-					console.log(thePlane.material[0]);
+//					console.log(thePlane.material[0]);
 					thePlane.material[0].opacity = 0.8;
 					new TWEEN.Tween( thePlane.material[0] )
 
@@ -638,12 +643,32 @@ someday I will let you enter your own search terms.  right now these are some br
 				}
 				// init done
 
+				// what about accumulation?
+				function restoreCountsFromHistory() {
+					var oldData = localStorage['com.splatcollision.tweetparticles.history'];
+					var data = JSON.parse(oldData);
+					// reset and turn tweet logging off?
+					console.log(data);
+				}
+				
 				function clearCounts() {
+					
+					// cache the values we are overwriting in a history
+					var historyState = {lasttime: new Date().getTime()};
+					historyState.data = [];
+					historyState.searchStrs = [];
+					
 					for (var i = 0; i < searchStrs.length; i++) {
 						var searchCountID = searchStrs[i];
+						historyState.data[i] = localStorage[searchCountID];
+						historyState.searchStrs[i] = searchStrs[i];
 						localStorage[searchCountID] = 0;
-
+						
 					}
+					
+					localStorage['com.splatcollision.tweetparticles.history'] = JSON.stringify(historyState);
+//					console.log('cached:' + localStorage['com.splatcollision.tweetparticles.history']);
+					
 					localStorage['scaleFactor'] = 2; // reset it
 					scaleFactor = 2;
 					$('factor').update(scaleFactor);
@@ -685,7 +710,7 @@ someday I will let you enter your own search terms.  right now these are some br
 						highlightOriginPlane();
 						// move the camera to see the new points
 						mouseX = mouseXPositions[searchIdx];
-						mouseY = -300;
+						mouseY = -100;
 						localStorage[searchCountID + '_cache'] = 0; // reset cache
 					} else {
 						newTweets = parseInt(localStorage[searchCountID + '_cache']);
@@ -734,16 +759,29 @@ someday I will let you enter your own search terms.  right now these are some br
 				function displaySingleTweet() {
 					
 					var displayEle = $('single_tweet_display');
-					console.log('go');
+//					console.log('go');
+					displayEle.select('.atweet').each(function(ele){
+						// fade opacity by 0.1 steps, if opacity == 0, remove
+						var myFade = ele.getStyle('opacity');
+						myFade -= 0.1;
+						if (myFade <= 0) {
+							ele.remove();
+						} else {
+							ele.setStyle({opacity: myFade});
+						}
+					});
 					if (displayQueue.length > 0) {
 //						console.log(displayQueue);
 //						displayQueue[0];
-						displayEle.update(displayQueue.shift());
+						var newTweet = displayQueue.shift();
+
+						var newEle = displayEle.insert(newTweet);
+						newEle.setStyle({opacity: '1'});
 						//displayEle.highlight();
-						displayEle.setStyle({
+						newEle.setStyle({
 							color: '#bada55'
 						});
-						displayEle.morph('color:#000000;');
+						newEle.morph('color:#000000;');
 					}
 					
 				}
