@@ -160,7 +160,7 @@
 			top: 0px;
 			left: 0px;
 			z-index: 99;
-			/*display: none;*/
+		/*	display: none; */
 		}
 		
 		.bglayer_left {
@@ -322,7 +322,7 @@ someday I will let you enter your own search terms.  right now these are some br
 	var searchIdx = -1; // which one are we on...
 	
 	// set up data visualization
-	var originY = -500
+	var originY = -300;
 	var origins = [{x: 300, y: originY, z: 300},{x: 300, y: originY, z: -300},{x: -300, y: originY, z: -300},{x: -300, y: originY, z: 300}];
 	var originPlanes = []; // array of plane objects matching each origin point above.
 	var mouseXPositions = [-90,90,260,430];
@@ -346,7 +346,7 @@ someday I will let you enter your own search terms.  right now these are some br
 	var minFPSCount = 0; // number of times dropped below framerate - 
 	$('factor').update(scaleFactor);
 	
-	var refresh = 5000; // 
+	var refresh = 8000; // 
 	var idleCamDriver = false;
 	var timeToIdle = 5;
 	var flipIdleY = false;
@@ -759,7 +759,7 @@ someday I will let you enter your own search terms.  right now these are some br
 
 						localRefreshID = searchStrs[i] + '_refresh';
 						localStorage[searchStrs[i] + '_cache'] = 0;  // cache for tweets below threshold of scaleFactor
-						localStorage[localRefreshID] = '?q=' + searchStrs[i]; // init first query strings  // if (!localStorage[localRefreshID]) 
+						localStorage[localRefreshID] = '?q=' + searchStrs[i] + '&result_type=recent'; // init first query strings  
 						var countID = searchStrs[i];
 						//console.log(countID);
 						var count = parseInt(localStorage[countID]);
@@ -801,6 +801,8 @@ someday I will let you enter your own search terms.  right now these are some br
 					
 					localStorage['scaleFactor'] = 2; // reset it
 					scaleFactor = 2;
+					baseCamDist = 1000;
+					
 					$('factor').update(scaleFactor);
 					// redraw
 					clearScene();
@@ -818,7 +820,17 @@ someday I will let you enter your own search terms.  right now these are some br
 				
 				function handleTweets(data) {
 					//console.log(data);
-					if (!data.results) return; // bail out on error
+					
+					
+					if (!data.results) {
+						console.log(data.error);
+						if (data.error == "since_id too recent, poll less frequently") {
+							console.log('slow it down please');
+							if (script) head.removeChild(script);
+							ticker = new PeriodicalExecuter(getNewTweets, (refresh + 3000) / 1000);
+						}
+						return; // bail out on error
+					}
 					var newTweets = data.results.length;
 					//console.log('refresh:' + data.refresh_url);
 					//console.log('new tweets:' + newTweets);
@@ -830,6 +842,9 @@ someday I will let you enter your own search terms.  right now these are some br
 					var tweetCount = parseInt((localStorage[searchCountID]) ? localStorage[searchCountID] : 0); // for first run
 					tweetCount += data.results.length;
 					localStorage[searchCountID] = tweetCount;
+					if (!data.refresh_url) {
+						console.log('no refresh from twitter results');
+					}
 					localStorage[searchCountID + '_refresh'] = data.refresh_url; // use this next time?
 					$('container_' + (searchIdx + 1)).update(tweetCount);  					// totals
 
@@ -935,7 +950,9 @@ someday I will let you enter your own search terms.  right now these are some br
 					//console.log('new search index: ' + searchIdx);
 					//console.log(searchStrs[searchIdx]);
 					var myRefreshUrl = localStorage[searchStrs[searchIdx] + '_refresh'];
-					//console.log('updating:' + myRefreshUrl);
+					console.log('updating:' + myRefreshUrl);
+					// check if too recent?
+					
 					loadScript('http://search.twitter.com/search.json' + myRefreshUrl + '&callback=handleTweets');
 					//clearInterval(getNewTweets); // wait until we get our response script callback before firing again.
 					if (ticker) ticker.stop();
