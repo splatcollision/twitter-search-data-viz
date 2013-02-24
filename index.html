@@ -315,9 +315,21 @@ someday I will let you enter your own search terms.  right now these are some br
 
 //	}
 	
+	// big thanks to paul irish for this
+	// shim layer with setTimeout fallback
+      window.requestAnimFrame = (function(){
+        return  window.requestAnimationFrame       || 
+                window.webkitRequestAnimationFrame || 
+                window.mozRequestAnimationFrame    || 
+                window.oRequestAnimationFrame      || 
+                window.msRequestAnimationFrame     || 
+                function(/* function */ callback, /* DOMElement */ element){
+                  window.setTimeout(callback, 1000 / 60);
+                };
+      })();
+  
 	
-	var searchStrs = ['nike','nook','verizon','walmart'];
-//	var searchStrs = ['iphone','android','windows','mac'];	
+	var searchStrs = ['iphone','android','nook','kindle'];	
 //	var currentQuery = searchStrs[searchIdx];
 	var searchIdx = -1; // which one are we on...
 	
@@ -366,8 +378,13 @@ someday I will let you enter your own search terms.  right now these are some br
 				var slope = windowHalfY / windowHalfX; // rise over run
 
 				init();
-				setInterval( loop, 1000 / 60 );
-
+				
+				//setInterval( loop, 1000 / 60 );
+        (function animloop(){
+              loop();
+              requestAnimFrame(animloop);
+            })();
+            
 				function init() {
 
 					container = document.createElement('div');
